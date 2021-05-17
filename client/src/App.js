@@ -3,33 +3,21 @@ import './App.css';
 import Form from "./components/Form";
 import TodoList from "./components/TodoList";
 import { DragDropContext } from 'react-beautiful-dnd';
-import Modal from 'react-bootstrap/Modal';
-import Button from 'react-bootstrap/Button';
+import axios from 'axios';
 
 function App() {
   const [inputText, setInputText] = useState("");
   const [todoList, setTodoList] = useState([]);
-  const [status, setStatus] = useState("all");
   const [listID, setListID] = useState("");
   const [inputTodo, setInputTodo] = useState("");
-  const [modalShow, setModalShow] = useState(false);
 
   useEffect(() => {
-    getLocalTodos();
+    axios.get('http://localhost:5000/todolist').then((allTodoList)=> {
+      setTodoList(allTodoList.data);
+      console.log(allTodoList.data);
+    })
   }, []);
 
-  useEffect(() => {
-    saveLocalTodos();
-  }, [todoList, status]);
-
-  const saveLocalTodos = () => {
-    localStorage.setItem("todoList", JSON.stringify(todoList));
-  };
-  const getLocalTodos = () => {
-    if (localStorage.getItem("todoList") !== null)
-      setTodoList(JSON.parse(localStorage.getItem("todoList")));
-      console.log(todoList);
-  };
   function handleOnDragEnd(result) {
     console.log(result);
     if (!result.destination)
@@ -39,10 +27,13 @@ function App() {
     var new_items = items.map((item) => {
       if (item.id.toString() === result.source.droppableId){
         [target] = item.todos.filter((todo) => todo.id.toString() === result.draggableId);
-        return {
+        const new_list ={
           ...item,
           todos: item.todos.filter((todo) => todo.id.toString() !== result.draggableId)
-        }
+        }; 
+        axios.patch(`http://localhost:5000/todolist/${item.id.toString()}`, new_list);
+        return new_list
+        
       }
       return item;
     });
@@ -50,10 +41,12 @@ function App() {
       if (item.id.toString() === result.destination.droppableId){
         var todos = item.todos;
         todos.splice(result.destination.index, 0, target);
-        return {
+        const new_list = {
           ...item,
           todos: todos
-        }
+        };
+        axios.patch(`http://localhost:5000/todolist/${item.id.toString()}`, new_list);
+        return new_list;
       }
       return item;
     });
@@ -63,19 +56,22 @@ function App() {
   const submitTodoHandler = (e) => {
     e.preventDefault();
     console.log(e);
+    var new_todo;
     if (inputTodo !== ""){  
       setTodoList(todoList.map((list) => {
         if (list.id.toString() === listID){
-          return {
+          new_todo = {
             ...list,
             todos:[
               ...list.todos,
               {text: inputTodo,id: Math.random()*1000}
             ]
-          };
+          }
+          return new_todo;
         }
         else return list;
       }));
+      axios.patch(`http://localhost:5000/todolist/${listID}`, new_todo);
       setInputTodo("");
       
     }
@@ -86,11 +82,11 @@ function App() {
       <header className="App-header">
         <h1>Todo List</h1>
       </header>
-      <Form inputText={inputText} todoList={todoList} setTodoList={setTodoList} setInputText={setInputText} setStatus={setStatus} />
+      <Form inputText={inputText} todoList={todoList} setTodoList={setTodoList} setInputText={setInputText} />
       <DragDropContext onDragEnd={handleOnDragEnd}>
         <div className="content-container">
           {todoList.map((list) => (
-            <TodoList key={list.id} id={list.id} name={list.name} todos={list.todos} setListID={setListID} setTodoList={setTodoList} todoList={todoList}/>
+            <TodoList key={list.id} id={list.id} name={list.name} todos={list.todos} setListID={setListID} setTodoList={setTodoList} todoList={todoList} list={list} />
           ))}
         </div>
 

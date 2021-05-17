@@ -1,15 +1,17 @@
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import Todo from './Todo';
+import axios from 'axios';
 
-const TodoList = ({ id, name, todos, setListID, setTodoList,todoList }) => {
+const TodoList = ({ id, name, todos, setListID, setTodoList,todoList,list }) => {
     const deleteListHandler = () => {
         var listid = id.toString();
         setTodoList(todoList.filter((list) => list.id.toString() !== listid));
+        axios.delete(`http://localhost:5000/todolist/${listid}`);
     };
     return (
 
         <div className="list-container">
-            <button className="btn close" onClick={deleteListHandler}><span>X</span></button>
+            <button className="btn close" onClick={() => deleteListHandler()}><span>X</span></button>
             <h3>{name}</h3>
             <Droppable droppableId={`${id.toString()}`}>
 

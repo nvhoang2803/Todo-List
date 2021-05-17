@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React from 'react';
 
 const Form = ({ setInputText, todoList, setTodoList, inputText }) => {
@@ -12,7 +13,10 @@ const Form = ({ setInputText, todoList, setTodoList, inputText }) => {
             setTodoList([
                 ...todoList, { name: inputText, id: Math.random() * 1000, todos: [] }
             ]);
+            const todoListId = (Math.random() * 1000).toString();
             setInputText("");
+            axios.post('http://localhost:5000/todolist', {id: todoListId, name:inputText, todos:[]});
+            
         }
 
     };
