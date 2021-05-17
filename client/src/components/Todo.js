@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-
+import axios from 'axios';
 
 const Todo = ({ text, todo, todoList, setTodoList, listId }) => {
     const [isShown, setIsShown] =useState(false);
@@ -9,10 +9,12 @@ const Todo = ({ text, todo, todoList, setTodoList, listId }) => {
 
         var new_items = items.map((item) => {
           if (item.id.toString() === listId){
-            return {
+            const new_list = {
               ...item,
               todos: item.todos.filter((item) => item.id !== todo.id)
-            }
+            };
+            axios.patch(`http://localhost:5000/todolist/${item.id.toString()}`, new_list);
+            return new_list;
           }
           return item;
         });
